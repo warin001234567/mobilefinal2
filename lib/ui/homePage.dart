@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -8,8 +10,28 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   SharedPreferences jark;
-  String name='';
+  String name='', text;
   
+  
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/counter.txt');
+  }
+  Future<String> readCounter() async {
+    try {
+      final file = await _localFile;
+      String contents = await file.readAsString();
+      print(contents);
+      this.text = contents;
+      return contents;
+    } catch (e) {
+      return '';
+    }
+  }
   
   @override
   void initState() {
@@ -19,6 +41,7 @@ class _HomePageState extends State<HomePage> {
   void readLocal() async {
     jark = await SharedPreferences.getInstance();
     name = jark.getString('name' ?? '');
+    text = readCounter().toString();
 
     // Force refresh input
     setState(() {});
@@ -43,17 +66,14 @@ class _HomePageState extends State<HomePage> {
                       fontSize: 20.0,
                     ),
                   ),
-                  subtitle: Text('this is my quote'),
+                  subtitle: Text('this is my quote "${text == null ? '' : text }" '),
                 ),
                 RaisedButton(
                   child: Text("PROFILE SETUP"),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        // builder: (context) => ProfileScreen(user: user),
-                      ),
-                    );
+                    Navigator.pushNamed(
+                  context, '/profile'
+                );
                   },
                 ),
                 RaisedButton(

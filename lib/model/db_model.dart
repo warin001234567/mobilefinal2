@@ -31,16 +31,14 @@ class Model{
   return map;
 
   }
-
-
 }
 
 
 class ModelProvider {
   Database db;
-  Future open(String path) async{
-    
 
+
+  Future open(String path) async{
     db = await openDatabase(
       path,
       version: 1,
@@ -51,8 +49,7 @@ class ModelProvider {
             $columnUsername text not null,
             $columnPassword text not null,
             $columnName text,
-            $columnAge text,
-          )
+            $columnAge text)
         ''');
       });
   }
@@ -93,8 +90,8 @@ class ModelProvider {
 
   Future<int> updateUser(Model user) async {
     return await db.update(tableDB, user.toMap(),
-        where: '$columnId = ?',
-         whereArgs: [user.id]);
+        where: '$columnUsername = ?',
+         whereArgs: [user.username]);
   }
 
   Future<int> deleteUsers() async {

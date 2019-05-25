@@ -1,71 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import '../model/db_model.dart';
-import './loginscreen.dart';
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class RegisterScreen extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
-
-  bool isNumeric(String s) {
-  if(s == null) {
-    return false;
-  }
-    return double.parse(s, (e) => null) != null;
-  }
-
+class _ProfilePageState extends State<ProfilePage> {
+  final _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final _formKey = GlobalKey<FormState>();
   TextEditingController uid = TextEditingController();
   TextEditingController pwd = TextEditingController();
   TextEditingController nam = TextEditingController();
   TextEditingController old = TextEditingController();
-  final _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final _formKey = GlobalKey<FormState>();
-  List<Model> user = List();
+  TextEditingController quote = TextEditingController();
   ModelProvider temp = ModelProvider();
-  bool controluid;
+  SharedPreferences jark;
 
-  @override
+
+   @override
   void initState() {
     super.initState();
     temp.open('model.db').then((r) {
       print("open success");
     });
   }
-
-  controlRegis()async{
-    await temp.regisControl(uid.text).then((r){
-        setState(() {
-        controluid = r;
-        });
-      });
-  }
   
-  void checkRegis()async{
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  }
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return File('$path/quote.txt');
+  }
+  Future<File> writeCounter(String counter) async {
+    final file = await _localFile;
+    final temp = file.writeAsString('$counter');
+    print(counter);
+    return temp;
+  }
+
+  bool isNumeric(String s) {
+    if(s == null) {
+      return false;
+    }
+      return double.parse(s, (e) => null) != null;
+  }
+
+  void updateProfile() async{
     _formKey.currentState.save();
+    String iduser;
     if(_formKey.currentState.validate()){
-      if(uid.text != '' || pwd.text != '' ){
-        await controlRegis();
-        if(controluid){
-          Model test = Model(
+      jark = await SharedPreferences.getInstance();
+      iduser =await jark.getString('userid' ?? '');
+      print(iduser);
+      if(iduser == uid.text){
+        Model test = Model(
             username: uid.text,
             password: pwd.text,
             name: nam.text,
-            age: old.text
+            age: old.text,
           );
-          temp.instert(test).then((r){
-            print("regist pass!!!");
-            Navigator.pushNamed(
-                    context, '/'
-                  );
-          });
-        }else{
-          _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('userid duplicate, please fill new userid')));
-        }
+          writeCounter(quote.text);
+      await temp.updateUser(test);
+       Navigator.pushNamed(
+                  context, '/home'
+                );
+        
+      
       }
+      
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -149,12 +160,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (value != pwd.text) return "Password does not match";
                 },
               ),
-          Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: RaisedButton(
-              color: Colors.grey,
-              child: Text('Register', style: TextStyle(color: Colors.white)),
-              onPressed: checkRegis,
+              TextFormField(
+                  controller: quote,
+                  maxLines: 5,
+                  decoration: InputDecoration(labelText: "Quote"),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: RaisedButton(
+                    color: Colors.grey,
+                    child: Text('LOGIN', style: TextStyle(color: Colors.white)),
+                    onPressed: updateProfile,
             ),
           ),
           ],

@@ -38,20 +38,29 @@ class _loginScreenState extends State<loginScreen> {
 
   void checkLogin()async{
     _formKey.currentState.save();
-    
-    if (uid.text != '' || pwd.text != '')
-    {
-     await getuser();
-     if(user.isEmpty){
-       _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('username or password worng!!!')));
-     }else{
-       jark = await SharedPreferences.getInstance();
-       await jark.setString('name', user[0].name);
-       Navigator.pushNamed(
-        context, '/home'
-      );
-     }
+    if(_formKey.currentState.validate()){
+      if (uid.text != '' && pwd.text != '')
+      {
+        await getuser();
+        if(user.isEmpty){
+          _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('username or password worng!!!')));
+        }else{
+          jark = await SharedPreferences.getInstance();
+          await jark.setString('name', user[0].name);
+          await jark.setString('userid', user[0].username);
+          if(jark.getString('name' ?? '').isNotEmpty && jark.getString('userid' ?? '').isNotEmpty){
+            print('eiei');
+            Navigator.pushReplacementNamed(
+            context, '/home'
+          );
+          }
+        }
+      }
+      else{
+        _scaffoldKey.currentState.showSnackBar(SnackBar(content: Text('Please fill out this form')));
+      }
     }
+
   }
 
   @override
